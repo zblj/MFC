@@ -16,6 +16,8 @@ struct{
     float DAC_offset[4];
 } calibrationData;
 
+uint8_t boardID;
+
 int switchOutputsInit( void ){
     // array of pins for iteration
     const int pins[] = {OUT_A_PIN,
@@ -107,4 +109,38 @@ void setMFC_volt(uint8_t ch, float volt){
     voltCode = MAX(0, MIN(volt, 4095));
 
     AD5592R_Write(AD5592R_DAC_WR | ((channelIDs[ch])<<12) | voltCode); // Writing to sequencer initiates the reading
+}
+
+void boardIDSelector_Init(void){
+    boardID = BOARD_ID;
+    gpio_init(ID_PIN_1);
+    gpio_init(ID_PIN_2);
+    gpio_init(ID_PIN_3);
+    gpio_init(ID_PIN_4);
+
+    gpio_set_dir(ID_PIN_1, 0);
+    gpio_set_dir(ID_PIN_2, 0);
+    gpio_set_dir(ID_PIN_3, 0);
+    gpio_set_dir(ID_PIN_4, 0);
+}
+uint8_t boardIDSelector_getID(uint8_t setGlobalVariable){
+    uint8_t ID = 0;
+    volatile uint32_t IOs = sio_hw->gpio_in;
+    if (sio_hw->gpio_in & 1<<ID_PIN_1){
+        ID |= 1<<0;
+    }
+    if (sio_hw->gpio_in & 1<<ID_PIN_2){
+        ID |= 1<<1;
+    }
+    if (sio_hw->gpio_in & 1<<ID_PIN_3){
+        ID |= 1<<2;
+    }
+    if (sio_hw->gpio_in & 1<<ID_PIN_4){
+        ID |= 1<<3;
+    }
+    ID = 0x0F - ID;   // by default, the pins are inverted
+    if (setGlobalVariable){
+        boardID = BOARD_ID | ID;
+    }
+    return ID;
 }

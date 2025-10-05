@@ -32,4 +32,11 @@
     #define VP_SNS_CH  1
     #define VIN_SNS_CH 0
 
+    // Board ID
+    #define ID_PIN_1 19
+    #define ID_PIN_2 21
+    #define ID_PIN_3 22
+    #define ID_PIN_4 20
+    #define BOARD_ID 0x00   /* top nibble is fixed, lower nibble is overriden by ID pins */
+
 #endif

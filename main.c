@@ -34,12 +34,11 @@ int main()
     switchOutputsInit();
     RS485_init();
     MFCInit();
+    boardIDSelector_Init();
+
 
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, 1);
-
-    // gpio_init(RS485_Tx_PIN);
-    // gpio_set_dir(RS485_Tx_PIN, 1);
 
     // array of pins for iteration
     const int pins[] = {OUT_A_PIN,
@@ -58,15 +57,17 @@ int main()
         readbackVal = AD5592R_ReadReg(readbackReg);
     }
     
-    volatile uint8_t ch = 0;
-    volatile float DAC = 0;
-    volatile float ADC = 0;
+    // for evaluating reading and writing for MFCs
+    // volatile uint8_t ch = 0;
+    // volatile float DAC = 0;
+    // volatile float ADC = 0;
+    // while (true) {
+    //     setMFC_volt(ch, DAC);
+    //     ADC = readMFC_volt(ch);
+    // }
     while (true) {
-        setMFC_volt(ch, DAC);
-        ADC = readMFC_volt(ch);
-    }
-    while (true) {
-        printf("Hello, world!\n");
+        boardID = boardIDSelector_getID(0);
+        printf("Board ID: %x\n", boardID);
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
         // gpio_put(RS485_Tx_PIN, 1);
         sleep_ms(100);
