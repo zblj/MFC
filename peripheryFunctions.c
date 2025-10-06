@@ -1,6 +1,7 @@
 #include "peripheryFunctions.h"
 #include "AD5592R.h"
 #include "math.h"
+#include "hardware/adc.h"
 
 #ifndef MAX
     #define MAX(x, y) (((x) > (y)) ? (x) : (y))
@@ -14,10 +15,13 @@ struct{
     float ADC_offset[4];
     float DAC_gain[4];
     float DAC_offset[4];
+    float monitor_gain[3];
+    float monitor_offset[3];
 } calibrationData;
 
 uint8_t boardID;
 
+// PWM enabled relay outputs
 int switchOutputsInit( void ){
     // array of pins for iteration
     const int pins[] = {OUT_A_PIN,
@@ -52,6 +56,7 @@ int setSwitchOutput(uint8_t ch, uint16_t val){
     return 0;
 }
 
+// MFC
 void MFCInit(void){
     for (int i=0; i<4; i++){
         calibrationData.ADC_gain[i] = 1;
@@ -101,8 +106,8 @@ float readMFC_volt(uint8_t ch){
 void setMFC_volt(uint8_t ch, float volt){
     int voltCode;
     const uint16_t channelIDs[] = {1, 0, 7, 6};
-    volt -= calibrationData.DAC_offset[ch];
     volt *= calibrationData.DAC_gain[ch];
+    volt -= calibrationData.DAC_offset[ch];
     volt *= 4096./5.;
     volt = roundf(volt);
 
@@ -111,6 +116,7 @@ void setMFC_volt(uint8_t ch, float volt){
     AD5592R_Write(AD5592R_DAC_WR | ((channelIDs[ch])<<12) | voltCode); // Writing to sequencer initiates the reading
 }
 
+// Board ID selector switch
 void boardIDSelector_Init(void){
     boardID = BOARD_ID;
     gpio_init(ID_PIN_1);
@@ -143,4 +149,35 @@ uint8_t boardIDSelector_getID(uint8_t setGlobalVariable){
         boardID = BOARD_ID | ID;
     }
     return ID;
+}
+
+// ADC for supply voltage readback
+void PowerSupplyMonitor_Init(void){
+    adc_init();
+    adc_gpio_init(ADC_PIN_OFFSET + VIN_SNS_CH);
+    adc_gpio_init(ADC_PIN_OFFSET + VP_SNS_CH);
+    adc_gpio_init(ADC_PIN_OFFSET + VN_SNS_CH);
+
+    for (int i = 0; i<3; i++){
+        calibrationData.monitor_gain[i] = 1;
+        calibrationData.monitor_offset[i] = 0;
+    }
+
+}
+float PowerSupplyMonitor_read(uint8_t ch){
+    uint16_t measurement;
+    float voltage;
+    // return NAN for invalid parameter
+    if (ch>2){
+        return NAN;
+    }
+    adc_select_input(ch);
+
+    measurement = adc_read();
+    voltage = measurement * 3.3/(1<<12);    // voltage on ADC
+    voltage *= 11;                          // voltage before the voltage divider (100k/10k)
+    voltage *= calibrationData.monitor_gain[ch];
+    voltage -= calibrationData.monitor_offset[ch];
+
+    return voltage;
 }

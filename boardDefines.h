@@ -28,9 +28,10 @@
     #define OUT_D_PIN 8   /* OUT 4 */
 
     // PSU sense
-    #define VN_SNS_CH  2
-    #define VP_SNS_CH  1
-    #define VIN_SNS_CH 0
+    #define ADC_PIN_OFFSET 26
+    #define VN_SNS_CH   2
+    #define VP_SNS_CH   1
+    #define VIN_SNS_CH  0
 
     // Board ID
     #define ID_PIN_1 19

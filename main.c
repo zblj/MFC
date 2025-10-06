@@ -35,6 +35,7 @@ int main()
     RS485_init();
     MFCInit();
     boardIDSelector_Init();
+    PowerSupplyMonitor_Init();
 
 
     gpio_init(PICO_DEFAULT_LED_PIN);
@@ -67,7 +68,10 @@ int main()
     // }
     while (true) {
         boardID = boardIDSelector_getID(0);
-        printf("Board ID: %x\n", boardID);
+        printf("Board ID: 0x%X\n", boardID);
+        printf("Vn: %.2f V\n", PowerSupplyMonitor_read(VN_SNS_CH));
+        printf("Vp: %.2f V\n", PowerSupplyMonitor_read(VP_SNS_CH));
+        printf("Vin: %.2f V\n", PowerSupplyMonitor_read(VIN_SNS_CH));
         gpio_put(PICO_DEFAULT_LED_PIN, 1);
         // gpio_put(RS485_Tx_PIN, 1);
         sleep_ms(100);

@@ -55,6 +55,7 @@ target_link_libraries(MFC
         hardware_spi
         hardware_dma
         hardware_pwm
+        hardware_adc
         )
 
 # Add the standard include files to the build
